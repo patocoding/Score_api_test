@@ -1,0 +1,17 @@
+A Api já tá pronta e preciso modelar o banco de dados
+o pessoal limitou o uso de ORM's e Dapper (nunca usei), então não posso usar EF que é o que me sinto confortável.
+pesquisando melhor, achei uma alternativa (ADO.NET) nativa, vou ter que escrever as queries na mão.
+Já devo ter usado essa alternativa num projeto há um tempo atrás, lembro de ter umas queries dentro do código e abrir connection pra rodar o command
+
+começar vendo a entidade Customer que é a principal aqui no caso
+Address e Phone poderiam ser tabelas separadas, mas olhando o codigo atual
+parece que eles nao tem vida propria no sistema, cada adress e phone vai ter 1 Customer
+o que posso ter entendido errado é que não seja necessário mudar esses 2.
+Mas vou confiar que não é necessário mudar e continuar assim, se for pra mudar, reprovo e melhoro no proximo teste.
+
+pra organizar vou botar tudo relacionado a BD dentro de /Infrastructure, os scripts de criação etc...
+já to pensando em botar uns dados fakes pra tentar deixar o banco lento e testar
+poder de otimização, não foi pedido mas pode ser um a +.
+
+criar o script da table clientes, em PT mesmo pq no readme tá em PT. botar um index unique no cpf
+criar uma área no appsettings pra colocar minha connection string
