@@ -1,19 +1,19 @@
 CREATE TABLE clientes (
-    id              UUID PRIMARY KEY,
-    nome            VARCHAR(200),
-    email           VARCHAR(200),
+    id              UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
+    nome            NVARCHAR(200) NULL,
+    email           NVARCHAR(200) NULL,
     data_nascimento DATE NOT NULL,
     telefone_ddd    VARCHAR(3) NOT NULL,
     telefone_numero VARCHAR(20) NOT NULL,
     cpf             CHAR(11) NOT NULL,
-    logradouro      VARCHAR(200),
-    endereco_numero VARCHAR(20),
-    complemento     VARCHAR(100),
-    cep             VARCHAR(8),
+    logradouro      NVARCHAR(200) NULL,
+    endereco_numero NVARCHAR(20) NULL,
+    complemento     NVARCHAR(100) NULL,
+    cep             VARCHAR(8) NULL,
     uf              CHAR(2) NOT NULL,
-    renda_anual     NUMERIC(18,2) NOT NULL,
-    criado_em       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    atualizado_em   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    renda_anual     DECIMAL(18,2) NOT NULL,
+    criado_em       DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+    atualizado_em   DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME()
 );
 
 CREATE UNIQUE INDEX ux_clientes_cpf ON clientes (cpf);
