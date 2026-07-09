@@ -37,3 +37,5 @@ com esse tipo  de implementação sempre segue esse fluxo -
 pro projeto atual n precisa de um lugar só pra botar o DI, mas pra deixar marcado esse pensamento
 vou separar o di num arquivo, o program.cs tende a crescer nessa implementação, ent vai ser
 valioso separar o DI fora do Program
+
+update está exigindo todos os campos, vou fazer com que seja parcial (mandar apenas a tag "name" por exemplo só vai alterar name)
