@@ -3,6 +3,9 @@ o pessoal limitou o uso de ORM's e Dapper (nunca usei), então não posso usar E
 pesquisando melhor, achei uma alternativa (ADO.NET) nativa, vou ter que escrever as queries na mão.
 Já devo ter usado essa alternativa num projeto há um tempo atrás, lembro de ter umas queries dentro do código e abrir connection pra rodar o command
 
+Antes de tudo, criar o repo local pra ir commitando alterações
+lembrar de usar padrão de commit
+
 começar vendo a entidade Customer que é a principal aqui no caso
 Address e Phone poderiam ser tabelas separadas, mas olhando o codigo atual
 parece que eles nao tem vida propria no sistema, cada adress e phone vai ter 1 Customer
@@ -15,3 +18,22 @@ poder de otimização, não foi pedido mas pode ser um a +.
 
 criar o script da table clientes, em PT mesmo pq no readme tá em PT. botar um index unique no cpf
 criar uma área no appsettings pra colocar minha connection string
+vou criar uma factory que vai criar a connection com o db pra ficar organizado e não precisar montar SqlConnection e ler a con string direto
+
+criei o mapper pra receber o reader e passar p objt c#
+mudar a connection string pra usar localhost
+
+criando repositorio sem mexer no InMemory, primeiro começar com o exists by cpf e ir fazendo o resto
+
+com esse tipo  de implementação sempre segue esse fluxo - 
+->cria connection 
+->abre connection com open async 
+->cria o command usando as queries 
+->se for leitura (get) , cria o reader 
+->um reader = 1 linha no banco 
+->add parametros se tiver
+->se for tipo get all (mais de uma linha) faz um while reader, se não, só retorna o valor 
+
+pro projeto atual n precisa de um lugar só pra botar o DI, mas pra deixar marcado esse pensamento
+vou separar o di num arquivo, o program.cs tende a crescer nessa implementação, ent vai ser
+valioso separar o DI fora do Program
