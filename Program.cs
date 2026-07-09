@@ -1,9 +1,6 @@
 using Teste.ScoreAPI.Api.Middleware;
-using Teste.ScoreAPI.Application.Interfaces;
-using Teste.ScoreAPI.Application.Services;
-using Teste.ScoreAPI.Domain.Interfaces;
-using Teste.ScoreAPI.Infrastructure.Repositories;
-using Teste.ScoreAPI.Infrastructure.Validation;
+using Teste.ScoreAPI.Application;
+using Teste.ScoreAPI.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,16 +8,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
 builder.Services.AddSwaggerGen();
-using Teste.ScoreAPI.Infrastructure.Database;
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' não configurada.");
-
-builder.Services.AddSingleton<IDbConnectionFactory>(_ => new SqlConnectionFactory(connectionString));
-builder.Services.AddScoped<ICustomerRepository, SqlCustomerRepository>();
-builder.Services.AddScoped<ICpfValidator, CpfValidator>();
-builder.Services.AddScoped<IScoreCalculator, ScoreCalculator>();
-builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddApplication();
+builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 
