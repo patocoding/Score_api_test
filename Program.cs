@@ -17,6 +17,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' não configurada.");
 
 builder.Services.AddSingleton<IDbConnectionFactory>(_ => new SqlConnectionFactory(connectionString));
+builder.Services.AddScoped<ICustomerRepository, SqlCustomerRepository>();
 builder.Services.AddScoped<ICpfValidator, CpfValidator>();
 builder.Services.AddScoped<IScoreCalculator, ScoreCalculator>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
