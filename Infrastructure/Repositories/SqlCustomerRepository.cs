@@ -34,7 +34,7 @@ public sealed class SqlCustomerRepository : ICustomerRepository
         await connection.OpenAsync(cancellationToken);
 
         await using var command = CreateCommand(connection, CustomerQueries.Insert);
-        AddCustomerParameters(command, customer);
+        AddInsertParameters(command, customer);
 
         try
         {
@@ -52,7 +52,7 @@ public sealed class SqlCustomerRepository : ICustomerRepository
         await connection.OpenAsync(cancellationToken);
 
         await using var command = CreateCommand(connection, CustomerQueries.UpdateByCpf);
-        AddCustomerParameters(command, customer);
+        AddUpdateParameters(command, customer);
         AddParameter(command, "@cpf", cpf);
 
         var rowsAffected = await command.ExecuteNonQueryAsync(cancellationToken);
@@ -98,15 +98,25 @@ public sealed class SqlCustomerRepository : ICustomerRepository
         return command;
     }
 
-    private static void AddCustomerParameters(DbCommand command, Customer customer)
+    private static void AddInsertParameters(DbCommand command, Customer customer)
     {
         AddParameter(command, "@id", customer.Id);
+        AddCommonParameters(command, customer);
+        AddParameter(command, "@cpf", customer.Cpf);
+    }
+
+    private static void AddUpdateParameters(DbCommand command, Customer customer)
+    {
+        AddCommonParameters(command, customer);
+    }
+
+    private static void AddCommonParameters(DbCommand command, Customer customer)
+    {
         AddParameter(command, "@nome", customer.Name);
         AddParameter(command, "@email", customer.Email);
         AddParameter(command, "@dataNascimento", customer.BirthDate.ToDateTime(TimeOnly.MinValue));
         AddParameter(command, "@ddd", customer.Phone.Ddd);
         AddParameter(command, "@numero", customer.Phone.Number);
-        AddParameter(command, "@cpf", customer.Cpf);
         AddParameter(command, "@logradouro", customer.Address.Street);
         AddParameter(command, "@enderecoNumero", customer.Address.Number);
         AddParameter(command, "@complemento", customer.Address.Complement);
