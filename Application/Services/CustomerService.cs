@@ -70,7 +70,10 @@ public sealed class CustomerService : ICustomerService
             throw new ValidationException("CPF é obrigatório.");
         }
 
-        ValidateRequiredFields(request);
+        if (!HasAnyUpdateField(request))
+        {
+            throw new ValidationException("Informe ao menos um campo para atualizar.");
+        }
 
         var normalizedCpf = NormalizeAndValidateCpf(cpf);
         var existingCustomer = await _customerRepository.GetByCpfAsync(normalizedCpf, cancellationToken);
@@ -79,30 +82,28 @@ public sealed class CustomerService : ICustomerService
             return null;
         }
 
-        if (request.BirthDate!.Value > DateOnly.FromDateTime(DateTime.UtcNow))
+        if (request.BirthDate.HasValue && request.BirthDate.Value > DateOnly.FromDateTime(DateTime.UtcNow))
         {
             throw new ValidationException("Data de nascimento não pode ser futura.");
         }
 
-        if (request.AnnualIncome!.Value < 0)
+        if (request.AnnualIncome.HasValue && request.AnnualIncome.Value < 0)
         {
             throw new ValidationException("Renda anual não pode ser negativa.");
         }
 
+        ValidatePartialPhone(request.Phone);
+        ValidatePartialAddress(request.Address);
+
         var updatedCustomer = new Customer(
             existingCustomer.Id,
-            request.Name?.Trim(),
-            request.Email?.Trim(),
-            request.BirthDate.Value,
-            new Phone(request.Phone!.Ddd!.Trim(), request.Phone.Number!.Trim()),
+            request.Name is not null ? request.Name.Trim() : existingCustomer.Name,
+            request.Email is not null ? request.Email.Trim() : existingCustomer.Email,
+            request.BirthDate ?? existingCustomer.BirthDate,
+            MergePhone(request.Phone, existingCustomer.Phone),
             existingCustomer.Cpf,
-            new Address(
-                request.Address!.Street?.Trim(),
-                request.Address.Number?.Trim(),
-                request.Address.Complement?.Trim(),
-                request.Address.ZipCode?.Trim(),
-                request.Address.State!.Trim().ToUpperInvariant()),
-            request.AnnualIncome.Value);
+            MergeAddress(request.Address, existingCustomer.Address),
+            request.AnnualIncome ?? existingCustomer.AnnualIncome);
 
         await _customerRepository.UpdateByCpfAsync(normalizedCpf, updatedCustomer, cancellationToken);
 
@@ -206,46 +207,96 @@ public sealed class CustomerService : ICustomerService
         }
     }
 
-    private static void ValidateRequiredFields(UpdateCustomerRequest request)
+    private static bool HasAnyUpdateField(UpdateCustomerRequest request)
     {
-        if (request.BirthDate is null)
+        if (request.Name is not null
+            || request.Email is not null
+            || request.BirthDate.HasValue
+            || request.AnnualIncome.HasValue)
         {
-            throw new ValidationException("Data de nascimento é obrigatória.");
+            return true;
         }
 
-        if (request.Phone is null)
+        if (request.Phone is not null
+            && (request.Phone.Ddd is not null || request.Phone.Number is not null))
         {
-            throw new ValidationException("Telefone é obrigatório.");
+            return true;
         }
 
-        if (string.IsNullOrWhiteSpace(request.Phone.Ddd))
+        if (request.Address is not null
+            && (request.Address.Street is not null
+                || request.Address.Number is not null
+                || request.Address.Complement is not null
+                || request.Address.ZipCode is not null
+                || request.Address.State is not null))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private static Phone MergePhone(PhoneRequest? request, Phone existing)
+    {
+        if (request is null)
+        {
+            return existing;
+        }
+
+        var ddd = request.Ddd is not null ? request.Ddd.Trim() : existing.Ddd;
+        var number = request.Number is not null ? request.Number.Trim() : existing.Number;
+
+        return new Phone(ddd, number);
+    }
+
+    private static Address MergeAddress(AddressRequest? request, Address existing)
+    {
+        if (request is null)
+        {
+            return existing;
+        }
+
+        return new Address(
+            request.Street is not null ? request.Street.Trim() : existing.Street,
+            request.Number is not null ? request.Number.Trim() : existing.Number,
+            request.Complement is not null ? request.Complement.Trim() : existing.Complement,
+            request.ZipCode is not null ? request.ZipCode.Trim() : existing.ZipCode,
+            request.State is not null ? request.State.Trim().ToUpperInvariant() : existing.State);
+    }
+
+    private static void ValidatePartialPhone(PhoneRequest? request)
+    {
+        if (request is null)
+        {
+            return;
+        }
+
+        if (request.Ddd is not null && string.IsNullOrWhiteSpace(request.Ddd))
         {
             throw new ValidationException("DDD do telefone é obrigatório.");
         }
 
-        if (string.IsNullOrWhiteSpace(request.Phone.Number))
+        if (request.Number is not null && string.IsNullOrWhiteSpace(request.Number))
         {
             throw new ValidationException("Número do telefone é obrigatório.");
         }
+    }
 
-        if (request.Address is null)
+    private static void ValidatePartialAddress(AddressRequest? request)
+    {
+        if (request?.State is null)
         {
-            throw new ValidationException("Endereço é obrigatório.");
+            return;
         }
 
-        if (string.IsNullOrWhiteSpace(request.Address.State))
+        if (string.IsNullOrWhiteSpace(request.State))
         {
             throw new ValidationException("UF do endereço é obrigatória.");
         }
 
-        if (request.Address.State.Trim().Length != 2)
+        if (request.State.Trim().Length != 2)
         {
             throw new ValidationException("UF do endereço deve conter 2 caracteres.");
-        }
-
-        if (request.AnnualIncome is null)
-        {
-            throw new ValidationException("Renda anual é obrigatória.");
         }
     }
 
